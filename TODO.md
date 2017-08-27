@@ -1,0 +1,7 @@
+- [ ] Don't explode when parsing a multi line variable
+- [ ] Clean up using a signal (remove the temp file) Not sure this is possible inside a function
+- [ ] Add option to make `abbr`s instead of `alias`es
+- [ ] Replace common bash syntax with the equivalent fish syntax
+  - [ ] `||` -> `; or`
+  - [ ] `&&` -> `; and`
+- [ ] Add function parsing How did bass do it? -- just read in the string for each function and create a fish wrapper that calls `bash -c "$function_body"`?
