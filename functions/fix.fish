@@ -35,13 +35,13 @@ end
 set -g fix_parse_statement '^(?:(?:unset|(?:un)?alias|export) )?([a-zA-Z_][a-zA-Z0-9_]*)(?:=(.*))?'
 
 function fix_parse_key
-  if not string replace -fr "$fix_parse_statement" '$1' -- "$argv"
+  if not string replace -r "$fix_parse_statement" '$1' -- "$argv"
     echo fix: error parsing statement: $argv >&2
   end
 end
 
 function fix_parse_value
-  if not string replace -fr "$fix_parse_statement" '$2' -- "$argv"
+  if not string replace -r "$fix_parse_statement" '$2' -- "$argv"
     echo fix: error parsing statement: $argv >&2
   end
 end
