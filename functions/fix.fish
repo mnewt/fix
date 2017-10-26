@@ -1,17 +1,26 @@
 #!/usr/bin/env fish
 
+set fix_version "0.2"
+
+function fix_version
+  echo "fix version $fix_version"
+end
+
 function fix_help
   echo "Fish Shell POSIX Interface: Trick bash utilities into working with fish"
   echo
+  fix_version
+  echo
   echo -n (set_color cyan)'usage:' (set_color normal)'fix [-fhpt] [-s <path_to_shell>] [--] <sh command>'
   echo "
-   -f:    Fish    - Print bindings in fish syntax
-   -h:    Help    - Print this help message
-   -p:    Print   - Print bindings in sh syntax
-   -s:    Shell   - Specify a shell interpreter executable path
-   -t:    Test    - Print the variables and aliases that would be
-                            created, but make no changes
-   --:    Optional separator between parameters and shell commands"
+   -f:   Fish    - Print bindings in fish syntax
+   -h:   Help    - Print this help message
+   -p:   Print   - Print bindings in POSIX sh syntax
+   -s:   Shell   - Specify a shell executable path (any POSIX shell should work)
+   -t:   Test    - Print the variables and aliases that would be
+                          created, but make no changes
+   -v:   Version - Print the version
+   --:   Optional separator between parameters and shell commands"
 end
 
 set -g fix_divider "~-~ FIX DIVIDER ~-~"
@@ -35,15 +44,13 @@ end
 set -g fix_parse_statement '^(?:(?:unset|(?:un)?alias|export) )?([a-zA-Z_][a-zA-Z0-9_]*)(?:=(.*))?'
 
 function fix_parse_key
-  if not string replace -r "$fix_parse_statement" '$1' -- "$argv"
-    echo fix: error parsing statement: $argv >&2
-  end
+  string replace -r "$fix_parse_statement" '$1' -- "$argv"
+    or echo fix: error parsing statement: $argv >&2
 end
 
 function fix_parse_value
-  if not string replace -r "$fix_parse_statement" '$2' -- "$argv"
-    echo fix: error parsing statement: $argv >&2
-  end
+  string replace -r "$fix_parse_statement" '$2' -- "$argv"
+    or echo fix: error parsing statement: $argv >&2
 end
 
 
@@ -55,8 +62,11 @@ function fix_vars_sh
   # Print variable additions or changes
   for statement in $after
     if not contains -- "$statement" $before
-      and not contains -- (fix_parse_key $statement) $ignore
-        echo $statement
+      set key (fix_parse_key $statement)
+      if not contains -- $key $ignore
+        set value (fix_parse_value $statement)
+        echo "$key=\"$value\""
+      end
     end
   end
 
@@ -80,11 +90,13 @@ function fix_vars_fish
       set value (fix_parse_value "$statement")
 
       if test "$key" = 'PATH'
-        set value (string replace -a ':' ' ' -- $value)
-        echo "set -gx $key $value"
-      else
-        echo "set -gx $key \"$value\""
+        set value (string trim -c '"' -- $value)
+        set value (string split ':' -- $value)
+        for i in (seq (count $value))
+          set value[$i] "\"$value[$i]\""
+        end
       end
+      echo "set -gx $key $value"
     end
   end
 end
@@ -105,17 +117,27 @@ function fix_alias_sh
   end
 end
 
+function fix_print
+  string join \n -- $argv
+end
+
 function fix_eval
   for line in $argv
-    eval $line
+    eval "$line"
   end
 end
 
 function fix_main
+
   set command $argv
   set previous_vars (eval "$fix_shell -c $fix_var_cmd")
   set previous_alias (eval "$fix_shell -c $fix_alias_cmd")
   set temp_file "/tmp/fix."(random)
+
+  # Attempt to normalize the command line arguments so that substitution will be
+  # handled by the POSIX shell, not fish
+  set command (string replace -a '"' "'" -- $command)
+  set command (string replace -a '$' '\$' -- $command)
 
   eval "$fix_shell -c \"$command && ($fix_var_cmd && echo $fix_divider && $fix_alias_cmd) >$temp_file\""
   set command_status $status
@@ -133,13 +155,13 @@ function fix_main
     set alias_fish $alias_sh
 
     if test $fix_print_sh = true
-      string join \n -- $vars_sh
-      string join \n -- $alias_sh
+      fix_print $vars_sh
+      fix_print $alias_sh
     end
 
     if test $fix_print_fish = true
-      string join \n -- $vars_fish
-      string join \n -- $alias_fish
+      fix_print $vars_fish
+      fix_print $alias_fish
     end
 
     if test $fix_test_only != true
@@ -147,7 +169,7 @@ function fix_main
       fix_eval $alias_fish
     end
   else
-    echo (set_color red)"Bash command failed:"(set_color normal)" $command"
+    echo (set_color red)"$fix_shell command failed:"(set_color normal)" $command"
   end
 
   return $command_status
@@ -155,7 +177,7 @@ end
 
 function fix -d "Run shell scripts, then import variables and aliases modified by them into the fish session"
   set command $argv
-  set -g fix_var_cmd env
+  set -g fix_var_cmd (which env)
   set -g fix_alias_cmd alias -p
   set -g fix_print_sh false
   set -g fix_print_fish false
@@ -171,10 +193,10 @@ function fix -d "Run shell scripts, then import variables and aliases modified b
   for opt in $command
     if test $next_param
       set -g $next_param[1] $opt
-      set command $command[2..-1]
+      set -e command[1]
       set -e param
     else if test "--" = (string sub -s 1 -l 2 -- $opt)
-      set command $command[2..-1]
+      set -e command[1]
       break
     else if test "-" = (string sub -s 1 -l 1 -- $opt)
       for c in (string split "" -- $opt)[2..-1]
@@ -190,13 +212,16 @@ function fix -d "Run shell scripts, then import variables and aliases modified b
             set param $param fix_shell
           case t
             set fix_test_only true
+          case v
+            fix_version
+            return 0
           case \*
             echo (set_color red)'error:' (set_color normal)'invalid parameter: ' $param
             fix_help
             return 121
         end
       end
-      set command $command[2..-1]
+      set -e command[1]
     else
       break # Pass the remainder of the command to bash
     end

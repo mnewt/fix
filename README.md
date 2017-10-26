@@ -5,10 +5,10 @@
 
 # What is it?
 
-Fix allows [bash](https://www.gnu.org/software/bash/) utilities to interact with the [fish](https://fishshell.com/) environment. Specifically, it runs `bash`/`csh`/`ash`/`ksh`/`sh`/`zsh` commands, then binds the resulting variables and aliases into the `fish` environment.
+Fix allows [Bash](https://www.gnu.org/software/bash/) utilities to interact with the [fish](https://fishshell.com/) environment. Specifically, it runs `bash` commands, then binds the resulting variables and aliases into the `fish` environment. Actually, it should work with any POSIX-ish shell, e.g. `csh`/`ash`/`ksh`/`sh`/`zsh`.
 
 ## This is useful for:
-- Utilities which modify the environment and expect a bash/POSIX shell:
+- Utilities which modify the environment and expect a Bash/POSIX shell:
   - [nvm](https://github.com/creationix/nvm)
   - [rvm](https://rvm.io/)
   - [virtualenv](https://virtualenv.pypa.io/en/stable/)
@@ -21,6 +21,7 @@ Fix allows [bash](https://www.gnu.org/software/bash/) utilities to interact with
   - Implemented in native `fish`
   - Verbose mode can also print changes in `fish` format
   - Test-only mode
+  - You hate newlines in variables and want your programs to explode if they find one
   - Exciting bugs
 - [fenv](https://github.com/oh-my-fish/plugin-foreign-env)
   - Works with interactive commands
@@ -64,19 +65,21 @@ Will run the script and then bind the exported variables and aliases into the fi
 
 Fish Shell POSIX Interface: Trick bash utilities into working with fish
 
-    usage: fix [-fhpt] [-s <path_to_shell>] [--] <sh command>
-       -f:    Fish    - Print bindings in fish syntax
-       -h:    Help    - Print this help message
-       -p:    Print   - Print bindings in sh syntax
-       -s:    Shell   - Specify a shell interpreter executable path
-       -t:    Test    - Print the variables and aliases that would be
-                                created, but make no changes
-       --:    Optional separator between parameters and shell commands
+fix version 0.2
+
+usage: fix [-fhpt] [-s <path_to_shell>] [--] <sh command>
+   -f:   Fish    - Print bindings in fish syntax
+   -h:   Help    - Print this help message
+   -p:   Print   - Print bindings in POSIX sh syntax
+   -s:   Shell   - Specify a shell executable path (any POSIX shell should work)
+   -t:   Test    - Print the variables and aliases that would be
+                          created, but make no changes
+   -v:   Version - Print the version
+   --:   Optional separator between parameters and shell commands
 
 # Requirements
 
 - Fish shell 2.2+
-- sed
 
 # Contributing
 
