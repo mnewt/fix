@@ -19,17 +19,17 @@ Fix allows [Bash](https://www.gnu.org/software/bash/) utilities to interact with
 - [bass](https://github.com/edc/bass)
   - May work better with interactive commands?
   - Implemented in native `fish`
+  - Replaces '&&' and '||' with '; and' and '; or', respectively
   - Verbose mode can also print changes in `fish` format
   - Test-only mode
   - You hate newlines in variables and want your programs to explode if they find one
-  - Exciting bugs
 - [fenv](https://github.com/oh-my-fish/plugin-foreign-env)
   - Works with interactive commands
   - Support for aliases
   - Support un-setting variables
+  - Replaces '&&' and '||' with '; and' and '; or', respectively
   - Verbose modes to print the changes in `sh` or `fish` format
   - Test-only mode
-  - Exciting bugs
 
 # Install
 
@@ -65,7 +65,7 @@ Will run the script and then bind the exported variables and aliases into the fi
 
 Fish Shell POSIX Interface: Trick bash utilities into working with fish
 
-fix version 0.2
+fix version 0.3
 
 usage: fix [-fhpt] [-s <path_to_shell>] [--] <sh command>
    -f:   Fish    - Print bindings in fish syntax
@@ -73,7 +73,7 @@ usage: fix [-fhpt] [-s <path_to_shell>] [--] <sh command>
    -p:   Print   - Print bindings in POSIX sh syntax
    -s:   Shell   - Specify a shell executable path (any POSIX shell should work)
    -t:   Test    - Print the variables and aliases that would be
-                          created, but make no changes
+                   created, but make no changes
    -v:   Version - Print the version
    --:   Optional separator between parameters and shell commands
 
@@ -83,7 +83,7 @@ usage: fix [-fhpt] [-s <path_to_shell>] [--] <sh command>
 
 # Contributing
 
-All contributions and feedback are welcomed
+All contributions and feedback are cordially welcomed
 
 # To Do
 

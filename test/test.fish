@@ -118,4 +118,8 @@ testing "Modify PATH variable" \
         "PATH=\"/one/path:/two/path with spaces:three\"" \
         fix -pt 'export PATH=\"/one/path:/two/path with spaces:three\"'
 
+# testing "Substitute '; and' for '&&'" \
+#         "alias t='which env ; and  echo hi ; or  echo bye'" \
+#         fix -pt "alias t='which env && echo hi || echo bye'"
+
 testing_summary

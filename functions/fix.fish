@@ -1,6 +1,6 @@
 #!/usr/bin/env fish
 
-set fix_version "0.2"
+set fix_version "0.3"
 
 function fix_version
   echo "fix version $fix_version"
@@ -55,7 +55,7 @@ end
 
 
 function fix_vars_sh
-  set ignore _ OLDPWD PWD SHELLOPTS SHLVL
+  set ignore _ OLDPWD PWD SHELLOPTS SHLVL XPC_SERVICE_NAME
   set before (fix_first $argv)
   set after (fix_rest $argv)
 
@@ -107,7 +107,8 @@ function fix_alias_sh
 
   # Print alias additions or changes
   for statement in $after
-    not contains -- "$statement" $before; and echo $statement
+    not contains -- "$statement" $before
+      and string replace '&&' '; and ' $statement | string replace '||' '; or '
   end
 
   # Print unalias'ed aliases
